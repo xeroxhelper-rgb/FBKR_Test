@@ -28,8 +28,8 @@ const moods = ["든든하게", "가볍게", "얼큰하게", "새로운 거"];
 
 async function getOrCreateSession() {
   if (!supabase) return null;
-  const { data: current } = await supabase.auth.getSession();
-  if (current.session) return current.session;
+  const current = await supabase.auth.getSession();
+  if (current) return current;
   const { data, error } = await supabase.auth.signInAnonymously();
   if (error) {
     console.error("Supabase anonymous sign-in failed", error);
