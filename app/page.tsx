@@ -60,7 +60,7 @@ export default function Home() {
 
       <section className="hero" id="top">
         <div className="hero-copy"><p className="eyebrow"><span className="sun">☀</span> 화요일, 점심시간이 다가와요</p><h1>오늘 점심,<br /><em>뭐 먹지?</em></h1><p className="hero-sub">고민은 짧게, 맛있는 점심은 확실하게.<br />지금 내 기분에 딱 맞는 메뉴를 찾아드릴게요.</p></div>
-        <div className="hero-art" aria-hidden="true"><div className="art-circle">🍜</div><div className="art-note note-one">오늘은<br /><b>얼큰한 거!</b></div><div className="art-note note-two">점심시간<br /><b>12:00 - 13:00</b></div><span className="spark spark-a">✦</span><span className="spark spark-b">✧</span></div>
+        <div className="hero-art" aria-label="다채로운 점심 도시락과 샐러드 이미지"><img src="/images/lunch-hero.png" alt="다채로운 점심 도시락과 샐러드" /><div className="art-note note-one">오늘은<br /><b>알록달록한 거!</b></div><div className="art-note note-two">점심시간<br /><b>12:00 - 13:00</b></div><span className="spark spark-a">✦</span><span className="spark spark-b">✧</span></div>
       </section>
 
       <section className="controls" id="recommend">
