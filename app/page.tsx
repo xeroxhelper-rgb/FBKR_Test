@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "../lib/supabase";
 
 type Menu = {
   name: string;
@@ -33,6 +34,32 @@ export default function Home() {
   const [saved, setSaved] = useState<string[]>([]);
   const [toast, setToast] = useState("");
 
+  useEffect(() => {
+    let active = true;
+    const loadFavorites = async () => {
+      if (!supabase) return;
+      const { data: sessionData } = await supabase.auth.getSession();
+      let session = sessionData.session;
+      if (!session) {
+        const { data, error } = await supabase.auth.signInAnonymously();
+        if (error) {
+          setToast("Supabase 익명 로그인을 켜주세요");
+          setTimeout(() => setToast(""), 3000);
+          return;
+        }
+        session = data.session;
+      }
+      if (!session || !active) return;
+      const { data, error } = await supabase
+        .from("lunch_favorites")
+        .select("menu_name")
+        .eq("user_id", session.user.id);
+      if (!error && active) setSaved((data ?? []).map((row) => row.menu_name));
+    };
+    void loadFavorites();
+    return () => { active = false; };
+  }, []);
+
   const filtered = useMemo(() => {
     let list = menus.filter((item) => category === "전체" || item.category === category);
     if (budget === "1만원 이하") list = list.filter((item) => Number(item.price.replace(/[^0-9]/g, "")) <= 10000);
@@ -48,7 +75,21 @@ export default function Home() {
     setTimeout(() => setToast(""), 2200);
   };
 
-  const toggleSave = (name: string) => setSaved((items) => items.includes(name) ? items.filter((item) => item !== name) : [...items, name]);
+  const toggleSave = async (name: string) => {
+    const wasSaved = saved.includes(name);
+    setSaved((items) => wasSaved ? items.filter((item) => item !== name) : [...items, name]);
+    if (!supabase) return;
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) return;
+    const result = wasSaved
+      ? await supabase.from("lunch_favorites").delete().eq("user_id", data.session.user.id).eq("menu_name", name)
+      : await supabase.from("lunch_favorites").insert({ user_id: data.session.user.id, menu_name: name });
+    if (result.error) {
+      setSaved((items) => wasSaved ? [...items, name] : items.filter((item) => item !== name));
+      setToast("저장하지 못했어요. 잠시 후 다시 눌러주세요.");
+      setTimeout(() => setToast(""), 2500);
+    }
+  };
 
   return (
     <main className="app-shell">
