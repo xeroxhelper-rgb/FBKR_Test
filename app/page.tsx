@@ -37,7 +37,11 @@ export default function Home() {
   useEffect(() => {
     let active = true;
     const loadFavorites = async () => {
-      if (!supabase) return;
+      if (!supabase) {
+        setToast("Supabase 환경변수가 설정되지 않았어요");
+        setTimeout(() => setToast(""), 3000);
+        return;
+      }
       const { data: sessionData } = await supabase.auth.getSession();
       let session = sessionData.session;
       if (!session) {
@@ -77,10 +81,18 @@ export default function Home() {
 
   const toggleSave = async (name: string) => {
     const wasSaved = saved.includes(name);
-    setSaved((items) => wasSaved ? items.filter((item) => item !== name) : [...items, name]);
-    if (!supabase) return;
+    if (!supabase) {
+      setToast("Supabase 환경변수가 설정되지 않았어요");
+      setTimeout(() => setToast(""), 3000);
+      return;
+    }
     const { data } = await supabase.auth.getSession();
-    if (!data.session) return;
+    if (!data.session) {
+      setToast("익명 로그인이 꺼져 있어요");
+      setTimeout(() => setToast(""), 3000);
+      return;
+    }
+    setSaved((items) => wasSaved ? items.filter((item) => item !== name) : [...items, name]);
     const result = wasSaved
       ? await supabase.from("lunch_favorites").delete().eq("user_id", data.session.user.id).eq("menu_name", name)
       : await supabase.from("lunch_favorites").insert({ user_id: data.session.user.id, menu_name: name });
