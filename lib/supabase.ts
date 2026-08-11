@@ -4,13 +4,13 @@ type Session = {
   user: { id: string };
 };
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://xhpzkxtybshnzznbpcbu.supabase.co";
-const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhocHpreHR5YnNobnp6bmJwY2J1IiwiaWF0IjoxNzg2NDE5MDMxLCJleHAiOjIxMDE5OTUwMzF9.0Jme4UbcAebSSfw_PyoAUOGXBYqVNAICblsoXvXdZLk";
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 const sessionKey = "lunch-menu-supabase-session";
 
 const headers = (session?: Session) => ({
   apikey: key,
-  Authorization: `Bearer ${session?.access_token ?? key}`,
+  Authorization: `Bearer ${session?.access_token ?? key ?? ""}`,
   "Content-Type": "application/json",
 });
 
@@ -63,4 +63,4 @@ function from(table: string) {
   };
 }
 
-export const supabase = { auth, from };
+export const supabase = url && key ? { auth, from } : null;
