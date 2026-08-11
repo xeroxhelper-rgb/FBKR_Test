@@ -26,6 +26,18 @@ const menus: Menu[] = [
 
 const moods = ["든든하게", "가볍게", "얼큰하게", "새로운 거"];
 
+async function getOrCreateSession() {
+  if (!supabase) return null;
+  const { data: current } = await supabase.auth.getSession();
+  if (current.session) return current.session;
+  const { data, error } = await supabase.auth.signInAnonymously();
+  if (error) {
+    console.error("Supabase anonymous sign-in failed", error);
+    return null;
+  }
+  return data.session;
+}
+
 export default function Home() {
   const [mood, setMood] = useState("든든하게");
   const [category, setCategory] = useState("전체");
@@ -42,16 +54,11 @@ export default function Home() {
         setTimeout(() => setToast(""), 3000);
         return;
       }
-      const { data: sessionData } = await supabase.auth.getSession();
-      let session = sessionData.session;
+      const session = await getOrCreateSession();
       if (!session) {
-        const { data, error } = await supabase.auth.signInAnonymously();
-        if (error) {
-          setToast("Supabase 익명 로그인을 켜주세요");
-          setTimeout(() => setToast(""), 3000);
-          return;
-        }
-        session = data.session;
+        setToast("Supabase 익명 로그인을 확인해주세요");
+        setTimeout(() => setToast(""), 3000);
+        return;
       }
       if (!session || !active) return;
       const { data, error } = await supabase
@@ -86,16 +93,16 @@ export default function Home() {
       setTimeout(() => setToast(""), 3000);
       return;
     }
-    const { data } = await supabase.auth.getSession();
-    if (!data.session) {
-      setToast("익명 로그인이 꺼져 있어요");
+    const session = await getOrCreateSession();
+    if (!session) {
+      setToast("Supabase 익명 로그인을 확인해주세요");
       setTimeout(() => setToast(""), 3000);
       return;
     }
     setSaved((items) => wasSaved ? items.filter((item) => item !== name) : [...items, name]);
     const result = wasSaved
-      ? await supabase.from("lunch_favorites").delete().eq("user_id", data.session.user.id).eq("menu_name", name)
-      : await supabase.from("lunch_favorites").insert({ user_id: data.session.user.id, menu_name: name });
+      ? await supabase.from("lunch_favorites").delete().eq("user_id", session.user.id).eq("menu_name", name)
+      : await supabase.from("lunch_favorites").insert({ user_id: session.user.id, menu_name: name });
     if (result.error) {
       setSaved((items) => wasSaved ? [...items, name] : items.filter((item) => item !== name));
       setToast("저장하지 못했어요. 잠시 후 다시 눌러주세요.");
